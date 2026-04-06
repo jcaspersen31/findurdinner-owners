@@ -66,9 +66,9 @@ export default function Login() {
         </form>
 
         <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '12px', color: '#888' }}>
-          Don't have an account?{' '}
-          <Link to="/register" style={{ color: '#D85A30', textDecoration: 'none' }}>Register here</Link>
-        </div>
+  New restaurant owner?{' '}
+  <Link to="/register" style={{ color: '#D85A30', textDecoration: 'none' }}>Create an account</Link>
+</div>
       </div>
     </div>
   )
