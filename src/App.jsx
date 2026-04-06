@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { isLoggedIn, clearToken, getOwner } from './auth.js'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -6,7 +6,10 @@ import Dashboard from './pages/Dashboard'
 import RestaurantEdit from './pages/RestaurantEdit'
 
 function ProtectedRoute({ children }) {
-  if (!isLoggedIn()) return <Navigate to="/login" replace />
+  const location = useLocation()
+  if (!isLoggedIn()) {
+    return <Navigate to="/login" state={{ from: location }} replace />
+  }
   return children
 }
 
