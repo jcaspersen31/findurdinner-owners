@@ -5,7 +5,7 @@ import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import RestaurantEdit from './pages/RestaurantEdit'
 
-function ProtectedRoute({ children }) {
+function RequireAuth({ children }) {
   const location = useLocation()
   if (!isLoggedIn()) {
     return <Navigate to="/login" state={{ from: location }} replace />
@@ -46,17 +46,27 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/*" element={
-        <ProtectedRoute>
-          <OwnerLayout>
-            <Routes>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/restaurant/:id" element={<RestaurantEdit />} />
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
-            </Routes>
-          </OwnerLayout>
-        </ProtectedRoute>
-      } />
+      <Route
+        path="/dashboard"
+        element={
+          <RequireAuth>
+            <OwnerLayout>
+              <Dashboard />
+            </OwnerLayout>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/restaurant/:id"
+        element={
+          <RequireAuth>
+            <OwnerLayout>
+              <RestaurantEdit />
+            </OwnerLayout>
+          </RequireAuth>
+        }
+      />
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   )
 }
