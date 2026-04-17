@@ -28,6 +28,14 @@ export default function RestaurantEdit() {
           delivery: r.delivery,
           deliveryUrl: r.deliveryUrl || '',
           hours: r.hours || { Mon: '', Tue: '', Wed: '', Thu: '', Fri: '', Sat: '', Sun: '' },
+          cuisineBroad: r.cuisineBroad || '',
+          cuisineSpecific: r.cuisineSpecific || '',
+          atmosphere: r.atmosphere || '',
+          vegetarianFriendly: r.vegetarianFriendly || false,
+          veganFriendly: r.veganFriendly || false,
+          glutenFreeFriendly: r.glutenFreeFriendly || false,
+          halalFriendly: r.halalFriendly || false,
+          kosherFriendly: r.kosherFriendly || false,
         })
       } catch (err) {
         console.error(err)
@@ -104,6 +112,63 @@ export default function RestaurantEdit() {
                 <option value="$$$">$$$ — $25–$50</option>
                 <option value="$$$$">$$$$ — $50+</option>
             </select>
+          </div>
+        </div>
+
+        <div style={{ background: '#fff', border: '0.5px solid #e0dfd8', borderRadius: '12px', padding: '16px 20px', marginBottom: '12px' }}>
+          <div style={{ fontSize: '11px', fontWeight: 500, color: '#888', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '12px' }}>Cuisine & atmosphere</div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 500, color: '#666', marginBottom: '3px' }}>Broad category</label>
+              <select value={form.cuisineBroad} onChange={e => update('cuisineBroad', e.target.value)}
+                style={{ width: '100%', padding: '7px 10px', borderRadius: '8px', border: '0.5px solid #ccc', fontSize: '13px' }}>
+                <option value="">Select...</option>
+                {['American', 'Asian', 'European', 'Latin', 'Mediterranean', 'Indian', 'Middle Eastern', 'African', 'Fast Food', 'Cafe/Bakery'].map(b => (
+                  <option key={b}>{b}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 500, color: '#666', marginBottom: '3px' }}>Specific cuisine</label>
+              <input
+                type="text"
+                value={form.cuisineSpecific}
+                onChange={e => update('cuisineSpecific', e.target.value)}
+                placeholder="e.g. Pizza, BBQ, Sushi"
+                style={{ width: '100%', padding: '7px 10px', borderRadius: '8px', border: '0.5px solid #ccc', fontSize: '13px' }}
+              />
+            </div>
+          </div>
+
+          <div style={{ marginBottom: '10px' }}>
+            <label style={{ display: 'block', fontSize: '11px', fontWeight: 500, color: '#666', marginBottom: '3px' }}>Atmosphere</label>
+            <select value={form.atmosphere} onChange={e => update('atmosphere', e.target.value)}
+              style={{ width: '100%', padding: '7px 10px', borderRadius: '8px', border: '0.5px solid #ccc', fontSize: '13px' }}>
+              <option value="">Select...</option>
+              {['Casual', 'Fine Dining', 'Fast Casual', 'Bar/Pub', 'Cafe', 'Food Truck'].map(a => (
+                <option key={a}>{a}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '11px', fontWeight: 500, color: '#666', marginBottom: '6px' }}>Dietary options</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              {[
+                { field: 'vegetarianFriendly', label: 'Vegetarian friendly' },
+                { field: 'veganFriendly', label: 'Vegan friendly' },
+                { field: 'glutenFreeFriendly', label: 'Gluten-free friendly' },
+                { field: 'halalFriendly', label: 'Halal friendly' },
+                { field: 'kosherFriendly', label: 'Kosher friendly' },
+              ].map(({ field, label }) => (
+                <label key={field} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={form[field] || false}
+                    onChange={e => update(field, e.target.checked)} />
+                  {label}
+                </label>
+              ))}
+            </div>
           </div>
         </div>
 
