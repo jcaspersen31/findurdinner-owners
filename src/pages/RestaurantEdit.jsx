@@ -11,6 +11,9 @@ export default function RestaurantEdit() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [cuisinesList, setCuisinesList] = useState([])
+  const [cuisineOther, setCuisineOther] = useState('')
+  const [showCuisineOther, setShowCuisineOther] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -37,6 +40,17 @@ export default function RestaurantEdit() {
           halalFriendly: r.halalFriendly || false,
           kosherFriendly: r.kosherFriendly || false,
         })
+          try {
+            const cuisineRes = await fetch('https://api.findurdinner.com/cuisines')
+            const cuisines = await cuisineRes.json()
+            setCuisinesList(cuisines)
+            const inList = cuisines.some(c => c.name === r.cuisineSpecific)
+            if (r.cuisineSpecific && !inList) {
+              setShowCuisineOther(true)
+            }
+          } catch (err) {
+            console.error(err)
+          }
       } catch (err) {
         console.error(err)
       }
@@ -44,6 +58,7 @@ export default function RestaurantEdit() {
     }
     load()
   }, [id])
+
 
   function update(field, val) {
     setForm(f => ({ ...f, [field]: val }))
@@ -60,7 +75,18 @@ export default function RestaurantEdit() {
     setSaving(true)
     try {
       await api.patch(`/owner/restaurants/${id}`, form)
+      
+      // If owner used a custom cuisine, flag it for admin review
+      if (showCuisineOther && form.cuisineSpecific) {
+        await api.post('/reports', {
+          restaurantId: id,
+          issue: 'Missing information',
+          notes: `Owner suggested new cuisine type: "${form.cuisineSpecific}" — please review and add to taxonomy if appropriate.`,
+        })
+      }
+      
       setSaved(true)
+      setShowCuisineOther(false)
       setTimeout(() => setSaved(false), 2000)
     } catch (err) {
       alert(err.response?.data?.error || 'Save failed')
@@ -129,15 +155,42 @@ export default function RestaurantEdit() {
                 ))}
               </select>
             </div>
-            <div>
+           <div>
               <label style={{ display: 'block', fontSize: '11px', fontWeight: 500, color: '#666', marginBottom: '3px' }}>Specific cuisine</label>
-              <input
-                type="text"
-                value={form.cuisineSpecific}
-                onChange={e => update('cuisineSpecific', e.target.value)}
-                placeholder="e.g. Pizza, BBQ, Sushi"
-                style={{ width: '100%', padding: '7px 10px', borderRadius: '8px', border: '0.5px solid #ccc', fontSize: '13px' }}
-              />
+              <select
+                value={showCuisineOther ? 'other' : form.cuisineSpecific}
+                onChange={e => {
+                  if (e.target.value === 'other') {
+                    setShowCuisineOther(true)
+                    update('cuisineSpecific', '')
+                  } else {
+                    setShowCuisineOther(false)
+                    update('cuisineSpecific', e.target.value)
+                  }
+                }}
+                style={{ width: '100%', padding: '7px 10px', borderRadius: '8px', border: '0.5px solid #ccc', fontSize: '13px', marginBottom: showCuisineOther ? '6px' : '0' }}>
+                <option value="">Select...</option>
+                {cuisinesList
+                  .filter(c => !form.cuisineBroad || c.broad === form.cuisineBroad)
+                  .map(c => (
+                    <option key={c.id} value={c.name}>{c.name}</option>
+                  ))}
+                <option value="other">Other — not listed</option>
+              </select>
+              {showCuisineOther && (
+                <input
+                  type="text"
+                  value={form.cuisineSpecific}
+                  onChange={e => update('cuisineSpecific', e.target.value)}
+                  placeholder="Describe your cuisine type..."
+                  style={{ width: '100%', padding: '7px 10px', borderRadius: '8px', border: '0.5px solid #D85A30', fontSize: '13px' }}
+                />
+              )}
+              {showCuisineOther && (
+                <div style={{ fontSize: '11px', color: '#888', marginTop: '4px' }}>
+                  We'll review your cuisine type and add it to our list.
+                </div>
+              )}
             </div>
           </div>
 
