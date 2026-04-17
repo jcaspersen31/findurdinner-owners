@@ -99,10 +99,10 @@ export default function RestaurantEdit() {
               value={form.priceRange}
               onChange={e => update('priceRange', e.target.value)}
               style={{ padding: '7px 10px', borderRadius: '8px', border: '0.5px solid #ccc', fontSize: '13px' }}>
-              <option>$</option>
-              <option>$$</option>
-              <option>$$$</option>
-              <option>$$$$</option>
+                <option value="$">$ — Under $10</option>
+                <option value="$$">$$ — $10–$25</option>
+                <option value="$$$">$$$ — $25–$50</option>
+                <option value="$$$$">$$$$ — $50+</option>
             </select>
           </div>
         </div>
