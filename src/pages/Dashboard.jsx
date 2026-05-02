@@ -42,6 +42,15 @@ export default function Dashboard() {
     }
   }
 
+  async function manageBilling() {
+    try {
+      const res = await api.post('/stripe/create-portal')
+      window.location.href = res.data.url
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to open billing portal')
+    }
+  }
+
   const tierColors = {
     Featured: { bg: '#EEEDFE', color: '#3C3489' },
     Menu: { bg: '#E6F1FB', color: '#0C447C' },
@@ -91,12 +100,19 @@ export default function Dashboard() {
                 <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '999px', background: '#F1EFE8', color: '#5F5E5A' }}>{r.priceRange}</span>
               </div>
 
-              <div style={{ display: 'flex', gap: '8px', borderTop: '0.5px solid #f0efe8', paddingTop: '12px' }}>
+              <div style={{ display: 'flex', gap: '8px', borderTop: '0.5px solid #f0efe8', paddingTop: '12px', flexWrap: 'wrap' }}>
                 <button
                   onClick={() => navigate(`/restaurant/${r.id}`)}
                   style={{ padding: '6px 14px', background: '#fff', border: '0.5px solid #ccc', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', color: '#444' }}>
                   Edit listing
                 </button>
+                {r.tier?.name !== 'Free' && (
+                  <button
+                    onClick={manageBilling}
+                    style={{ padding: '6px 14px', background: '#fff', border: '0.5px solid #ccc', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', color: '#444' }}>
+                    Manage billing
+                  </button>
+                )}
                 {r.tier?.name === 'Free' && (
                   <button
                     onClick={() => upgrade(r.id, 'Menu')}
