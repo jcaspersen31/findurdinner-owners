@@ -11,6 +11,11 @@ export default function RestaurantEdit() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [menu, setMenu] = useState(null)
+  const [hasTier, setHasTier] = useState(false)
+  const [tierName, setTierName] = useState('Free')
+  const [menuUploading, setMenuUploading] = useState(false)
+  const [menuDeleting, setMenuDeleting] = useState(false)
   const [cuisinesList, setCuisinesList] = useState([])
   const [cuisineOther, setCuisineOther] = useState('')
   const [showCuisineOther, setShowCuisineOther] = useState(false)
@@ -20,6 +25,13 @@ export default function RestaurantEdit() {
       try {
         const res = await api.get(`/owner/restaurants/${id}`)
         const r = res.data
+        // Load menu info
+        try {
+          const menuRes = await api.get(`/owner/restaurants/${id}/menu`)
+          setMenu(menuRes.data.menu)
+          setHasTier(menuRes.data.hasTier)
+          setTierName(menuRes.data.tierName || 'Free')
+        } catch (e) { /* no menu yet */ }
         setForm({
           name: r.name,
           address: r.address,
@@ -279,6 +291,112 @@ export default function RestaurantEdit() {
           {saving ? 'Saving...' : saved ? 'Saved ✓' : 'Save changes'}
         </button>
       </form>
+
+      {/* Menu section */}
+      <div style={{ background: '#fff', border: '0.5px solid #e0dfd8', borderRadius: '12px', padding: '16px 20px', marginTop: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+          <div>
+            <div style={{ fontSize: '11px', fontWeight: 500, color: '#888', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Menu</div>
+            {!hasTier && (
+              <div style={{ fontSize: '12px', color: '#888', marginTop: '4px' }}>
+                Upload your menu with the <strong>Menu tier</strong> ($19/mo)
+              </div>
+            )}
+          </div>
+          {!hasTier && (
+            <button
+              onClick={async () => {
+                try {
+                  const res = await api.post('/stripe/create-checkout', { tierName: 'Menu', restaurantId: id })
+                  window.location.href = res.data.url
+                } catch (err) { alert('Failed to start checkout') }
+              }}
+              style={{ padding: '7px 14px', background: '#378ADD', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
+              Upgrade to Menu — $19/mo
+            </button>
+          )}
+        </div>
+
+        {hasTier && (
+          <div>
+            {menu?.pdfUrl ? (
+              <div>
+                {/* Menu preview */}
+                <img
+                  src={menu.pdfUrl}
+                  alt="Menu page 1"
+                  style={{ width: '100%', borderRadius: '8px', border: '0.5px solid #e0dfd8', marginBottom: '8px' }}
+                />
+                <div style={{ fontSize: '12px', color: '#888', marginBottom: '12px' }}>
+                  {menu.pageCount} page{menu.pageCount !== 1 ? 's' : ''} · Last updated {new Date(menu.updatedAt).toLocaleDateString()}
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <label style={{ padding: '7px 14px', background: '#f5f4f0', border: '0.5px solid #ddd', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontWeight: 500 }}>
+                    Replace menu
+                    <input type="file" accept=".pdf" style={{ display: 'none' }} onChange={async e => {
+                      const file = e.target.files[0]
+                      if (!file) return
+                      setMenuUploading(true)
+                      const fd = new FormData()
+                      fd.append('menu', file)
+                      try {
+                        const res = await api.post(`/owner/restaurants/${id}/menu/upload`, fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+                        setMenu(res.data.menu)
+                      } catch (err) { alert('Upload failed — make sure the file is a PDF under 30MB') }
+                      setMenuUploading(false)
+                      e.target.value = ''
+                    }} />
+                  </label>
+                  <button
+                    onClick={async () => {
+                      if (!confirm('Remove your menu?')) return
+                      setMenuDeleting(true)
+                      try {
+                        await api.delete(`/owner/restaurants/${id}/menu`)
+                        setMenu(null)
+                      } catch (err) { alert('Failed to remove menu') }
+                      setMenuDeleting(false)
+                    }}
+                    disabled={menuDeleting}
+                    style={{ padding: '7px 14px', background: '#fff', border: '0.5px solid #ddd', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', color: '#888' }}>
+                    {menuDeleting ? 'Removing...' : 'Remove'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <div style={{ fontSize: '13px', color: '#666', marginBottom: '12px' }}>
+                  Upload your menu as a PDF. It will be displayed as images in the FindUrDinner app — customers see your original menu with all its formatting and photos.
+                </div>
+                <label style={{
+                  display: 'inline-block', padding: '9px 20px',
+                  background: menuUploading ? '#eee' : '#D85A30',
+                  color: menuUploading ? '#999' : '#fff',
+                  border: 'none', borderRadius: '8px', fontSize: '13px',
+                  fontWeight: 600, cursor: menuUploading ? 'default' : 'pointer'
+                }}>
+                  {menuUploading ? 'Uploading...' : '📄 Upload menu PDF'}
+                  <input type="file" accept=".pdf" style={{ display: 'none' }} disabled={menuUploading}
+                    onChange={async e => {
+                      const file = e.target.files[0]
+                      if (!file) return
+                      setMenuUploading(true)
+                      const fd = new FormData()
+                      fd.append('menu', file)
+                      try {
+                        const res = await api.post(`/owner/restaurants/${id}/menu/upload`, fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+                        setMenu(res.data.menu)
+                      } catch (err) { alert('Upload failed — make sure the file is a PDF under 30MB') }
+                      setMenuUploading(false)
+                      e.target.value = ''
+                    }} />
+                </label>
+                <div style={{ fontSize: '11px', color: '#aaa', marginTop: '8px' }}>PDF only · Max 30MB</div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
