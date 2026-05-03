@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { MapContainer, TileLayer, CircleMarker, Tooltip } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
-import api from '../api.js'
+
+const API = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
 export default function Coverage() {
   const [clusters, setClusters] = useState([])
@@ -10,11 +11,11 @@ export default function Coverage() {
 
   useEffect(() => {
     Promise.all([
-      api.get('/restaurants/clusters'),
-      api.get('/restaurants/stats'),
-    ]).then(([clusterRes, statsRes]) => {
-      setClusters(clusterRes.data)
-      setTotal(statsRes.data.active || 0)
+      fetch(`${API}/restaurants/clusters`).then(r => r.json()),
+      fetch(`${API}/restaurants/stats`).then(r => r.json()),
+    ]).then(([clusterData, statsData]) => {
+      setClusters(clusterData)
+      setTotal(statsData.active || 0)
     }).catch(console.error)
       .finally(() => setLoading(false))
   }, [])
