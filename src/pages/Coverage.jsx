@@ -1,7 +1,4 @@
-import { useEffect, useState } from 'react'
-import { MapContainer, TileLayer, CircleMarker, Tooltip } from 'react-leaflet'
-import 'leaflet/dist/leaflet.css'
-
+import { useEffect, useState, useRef } from 'react'
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
 function AreaRequestForm() {
@@ -65,19 +62,56 @@ function AreaRequestForm() {
 }
 
 export default function Coverage() {
-  const [clusters, setClusters] = useState([])
   const [total, setTotal] = useState(0)
+  const [clusterCount, setClusterCount] = useState(0)
   const [loading, setLoading] = useState(true)
 
+  const mapRef = useRef(null)
+  const leafletMap = useRef(null)
+
   useEffect(() => {
-    Promise.all([
-      fetch(`${API}/restaurants/clusters`).then(r => r.json()),
-      fetch(`${API}/restaurants/stats/public`).then(r => r.json()),
-    ]).then(([clusterData, statsData]) => {
-      setClusters(Array.isArray(clusterData) ? clusterData : [])
-      setTotal(statsData.active || 0)
-    }).catch(console.error)
-      .finally(() => setLoading(false))
+    if (!document.getElementById('leaflet-css')) {
+      const link = document.createElement('link')
+      link.id = 'leaflet-css'
+      link.rel = 'stylesheet'
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
+      document.head.appendChild(link)
+    }
+
+    const initMap = () => {
+      if (!mapRef.current || leafletMap.current) return
+      const L = window.L
+      const map = L.map(mapRef.current, { center: [40.0, -76.0], zoom: 7 })
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map)
+      leafletMap.current = map
+
+      Promise.all([
+        fetch(`${API}/restaurants/clusters`).then(r => r.json()),
+        fetch(`${API}/restaurants/stats/public`).then(r => r.json()),
+      ]).then(([clusterData, statsData]) => {
+        const clusters = Array.isArray(clusterData) ? clusterData : []
+        setTotal(statsData.active || 0)
+        setClusterCount(clusters.length)
+        clusters.forEach(cluster => {
+          const radius = Math.min(5 + Math.sqrt(cluster.count) * 1.5, 18)
+          L.circleMarker([cluster.lat, cluster.lng], {
+            radius, fillColor: '#D85A30', fillOpacity: 0.65, color: '#993C1D', weight: 1,
+          }).addTo(map).bindTooltip(`<strong>${cluster.count} restaurant${cluster.count !== 1 ? 's' : ''}</strong>`)
+        })
+      }).catch(console.error).finally(() => setLoading(false))
+    }
+
+    if (window.L) { initMap() }
+    else {
+      const script = document.createElement('script')
+      script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
+      script.onload = initMap
+      document.head.appendChild(script)
+    }
+
+    return () => { if (leafletMap.current) { leafletMap.current.remove(); leafletMap.current = null } }
   }, [])
 
   return (
@@ -93,33 +127,15 @@ export default function Coverage() {
       {loading ? (
         <div style={{ padding: '48px', textAlign: 'center', color: '#888', fontSize: '13px' }}>Loading map...</div>
       ) : (
-        <div style={{ borderRadius: '12px', overflow: 'hidden', border: '0.5px solid #e0dfd8', marginBottom: '12px', height: '480px', position: 'relative' }}>
-          <MapContainer center={[40.5, -76.0]} zoom={7} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            {clusters.map((cluster, i) => (
-              <CircleMarker
-                key={i}
-                center={[cluster.lat, cluster.lng]}
-                radius={Math.min(5 + Math.sqrt(cluster.count) * 1.5, 18)}
-                pathOptions={{ fillColor: '#D85A30', fillOpacity: 0.65, color: '#993C1D', weight: 1 }}>
-                <Tooltip>
-                  <div style={{ fontSize: '12px' }}>
-                    <strong>{cluster.count} restaurant{cluster.count !== 1 ? 's' : ''}</strong>
-                  </div>
-                </Tooltip>
-              </CircleMarker>
-            ))}
-          </MapContainer>
+        <div style={{ borderRadius: '12px', overflow: 'hidden', border: '0.5px solid #e0dfd8', marginBottom: '12px', height: '480px' }}>
+          <div ref={mapRef} style={{ height: '100%', width: '100%' }} />
         </div>
       )}
 
       <div style={{ display: 'flex', gap: '24px', fontSize: '12px', color: '#888' }}>
         <span>🟠 Each dot represents a covered area</span>
         <span>Larger dots = more restaurants</span>
-        <span>{clusters.length} areas covered</span>
+        <span>{clusterCount} areas covered</span>
       </div>
 
       <AreaRequestForm />
