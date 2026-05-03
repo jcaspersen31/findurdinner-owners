@@ -12,9 +12,9 @@ export default function Coverage() {
   useEffect(() => {
     Promise.all([
       fetch(`${API}/restaurants/clusters`).then(r => r.json()),
-      fetch(`${API}/restaurants/stats`).then(r => r.json()),
+      fetch(`${API}/restaurants/stats/public`).then(r => r.json()),
     ]).then(([clusterData, statsData]) => {
-      setClusters(clusterData)
+      setClusters(Array.isArray(clusterData) ? clusterData : [])
       setTotal(statsData.active || 0)
     }).catch(console.error)
       .finally(() => setLoading(false))
