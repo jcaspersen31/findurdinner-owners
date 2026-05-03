@@ -79,7 +79,11 @@ export default function Coverage() {
     }
 
     const initMap = () => {
-      if (!mapRef.current || leafletMap.current) return
+      if (leafletMap.current) return
+      if (!mapRef.current || !window.L) {
+        setTimeout(initMap, 100) // retry until div and L are ready
+        return
+      }
       const L = window.L
       const map = L.map(mapRef.current, { center: [40.0, -76.0], zoom: 7 })
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
