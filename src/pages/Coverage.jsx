@@ -128,13 +128,12 @@ export default function Coverage() {
         </div>
       </div>
 
-      {loading ? (
+      {loading && (
         <div style={{ padding: '48px', textAlign: 'center', color: '#888', fontSize: '13px' }}>Loading map...</div>
-      ) : (
-        <div style={{ borderRadius: '12px', overflow: 'hidden', border: '0.5px solid #e0dfd8', marginBottom: '12px', height: '480px' }}>
-          <div ref={mapRef} style={{ height: '100%', width: '100%' }} />
-        </div>
       )}
+      <div style={{ borderRadius: '12px', overflow: 'hidden', border: '0.5px solid #e0dfd8', marginBottom: '12px', height: '480px', display: loading ? 'none' : 'block' }}>
+        <div ref={mapRef} style={{ height: '100%', width: '100%' }} />
+      </div>
 
       <div style={{ display: 'flex', gap: '24px', fontSize: '12px', color: '#888' }}>
         <span>🟠 Each dot represents a covered area</span>
