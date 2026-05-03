@@ -4,6 +4,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import RestaurantEdit from './pages/RestaurantEdit'
+import Coverage from './pages/Coverage'
 
 function RequireAuth({ children }) {
   const location = useLocation()
@@ -30,6 +31,10 @@ function OwnerLayout({ children }) {
           <span style={{ fontSize: '11px', color: '#888', marginLeft: '6px' }}>Owner portal</span>
         </span>
         <span style={{ marginLeft: 'auto', fontSize: '12px', color: '#888' }}>{owner?.name}</span>
+        <button onClick={() => navigate('/coverage')}
+          style={{ fontSize: '12px', padding: '4px 12px', border: '0.5px solid #ccc', borderRadius: '6px', background: '#fff', cursor: 'pointer', color: '#666' }}>
+          Coverage
+        </button>
         <button
           onClick={logout}
           style={{ fontSize: '12px', padding: '4px 12px', border: '0.5px solid #ccc', borderRadius: '6px', background: '#fff', cursor: 'pointer', color: '#666' }}>
@@ -46,6 +51,7 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/coverage" element={<Coverage />} />
       <Route
         path="/dashboard"
         element={

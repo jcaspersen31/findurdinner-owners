@@ -68,6 +68,11 @@ export default function Login() {
         <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '12px', color: '#888' }}>
   New restaurant owner?{' '}
   <Link to="/register" style={{ color: '#D85A30', textDecoration: 'none' }}>Create an account</Link>
+      <div style={{ textAlign: 'center', marginTop: '10px' }}>
+        <Link to="/coverage" style={{ fontSize: '12px', color: '#888', textDecoration: 'none' }}>
+          📍 View coverage map
+        </Link>
+      </div>
 </div>
       </div>
     </div>
