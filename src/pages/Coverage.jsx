@@ -93,8 +93,8 @@ export default function Coverage() {
       {loading ? (
         <div style={{ padding: '48px', textAlign: 'center', color: '#888', fontSize: '13px' }}>Loading map...</div>
       ) : (
-        <div style={{ borderRadius: '12px', overflow: 'hidden', border: '0.5px solid #e0dfd8', marginBottom: '12px', height: '480px' }}>
-          <MapContainer center={[40.5, -76.0]} zoom={7} style={{ height: '100%', width: '100%' }}>
+        <div style={{ borderRadius: '12px', overflow: 'hidden', border: '0.5px solid #e0dfd8', marginBottom: '12px', height: '480px', position: 'relative' }}>
+          <MapContainer center={[40.5, -76.0]} zoom={7} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
