@@ -4,6 +4,66 @@ import 'leaflet/dist/leaflet.css'
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
+function AreaRequestForm() {
+  const [city, setCity] = useState('')
+  const [state, setState] = useState('')
+  const [email, setEmail] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+
+  async function submit(e) {
+    e.preventDefault()
+    if (!city.trim()) return
+    setSubmitting(true)
+    try {
+      await fetch(`${API}/requests`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'area_request', city: city.trim(), state: state.trim(), userEmail: email.trim() }),
+      })
+      setSubmitted(true)
+    } catch (err) { console.error(err) }
+    setSubmitting(false)
+  }
+
+  if (submitted) return (
+    <div style={{ background: '#EAF3DE', borderRadius: '10px', padding: '14px 16px', marginTop: '16px' }}>
+      <div style={{ fontWeight: 600, color: '#27500A', marginBottom: '4px' }}>✓ Request submitted!</div>
+      <div style={{ fontSize: '13px', color: '#3B6D11' }}>We'll prioritize importing {city} and notify you when it's live.</div>
+    </div>
+  )
+
+  return (
+    <div style={{ background: '#fff', border: '0.5px solid #e0dfd8', borderRadius: '12px', padding: '20px', marginTop: '16px' }}>
+      <div style={{ fontWeight: 600, fontSize: '15px', marginBottom: '4px' }}>📍 Request your area</div>
+      <div style={{ fontSize: '13px', color: '#888', marginBottom: '14px' }}>
+        Don't see your city? Let us know and we'll prioritize importing restaurants there.
+      </div>
+      <form onSubmit={submit}>
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+          <input
+            value={city} onChange={e => setCity(e.target.value)}
+            placeholder="City *" required
+            style={{ flex: 2, padding: '9px 12px', borderRadius: '8px', border: '0.5px solid #ddd', fontSize: '13px' }} />
+          <input
+            value={state} onChange={e => setState(e.target.value)}
+            placeholder="State" maxLength={2}
+            style={{ flex: 1, padding: '9px 12px', borderRadius: '8px', border: '0.5px solid #ddd', fontSize: '13px', textTransform: 'uppercase' }} />
+        </div>
+        <input
+          value={email} onChange={e => setEmail(e.target.value)}
+          placeholder="Email (optional — we'll notify you when it's live)"
+          type="email"
+          style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '0.5px solid #ddd', fontSize: '13px', marginBottom: '10px', boxSizing: 'border-box' }} />
+        <button type="submit" disabled={submitting || !city.trim()}
+          style={{ padding: '9px 20px', background: '#D85A30', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 600, fontSize: '13px', cursor: 'pointer', opacity: !city.trim() ? 0.5 : 1 }}>
+          {submitting ? 'Submitting...' : 'Request this area'}
+        </button>
+      </form>
+    </div>
+  )
+}
+
 export default function Coverage() {
   const [clusters, setClusters] = useState([])
   const [total, setTotal] = useState(0)
@@ -61,6 +121,8 @@ export default function Coverage() {
         <span>Larger dots = more restaurants</span>
         <span>{clusters.length} areas covered</span>
       </div>
+
+      <AreaRequestForm />
     </div>
   )
 }
