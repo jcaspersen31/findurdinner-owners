@@ -17,8 +17,11 @@ export default function RestaurantEdit() {
   const [menuUploading, setMenuUploading] = useState(false)
   const [menuDeleting, setMenuDeleting] = useState(false)
   const [cuisinesList, setCuisinesList] = useState([])
+  const [cuisineGroups, setCuisineGroups] = useState([])
   const [cuisineOther, setCuisineOther] = useState('')
   const [showCuisineOther, setShowCuisineOther] = useState(false)
+  const [secondaryCuisineIds, setSecondaryCuisineIds] = useState([])
+  const [cuisineDirty, setCuisineDirty] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -59,6 +62,11 @@ export default function RestaurantEdit() {
             const cuisineRes = await fetch('https://api.findurdinner.com/cuisines')
             const cuisines = await cuisineRes.json()
             setCuisinesList(cuisines)
+            const groupRes = await fetch('https://api.findurdinner.com/cuisines/grouped')
+            const groups = await groupRes.json()
+            setCuisineGroups(groups)
+            // Pre-populate secondary cuisines from existing data
+            setSecondaryCuisineIds(r.cuisines?.map(c => c.cuisineId) || [])
             const inList = cuisines.some(c => c.name === r.cuisineSpecific)
             if (r.cuisineSpecific && !inList) {
               setShowCuisineOther(true)
@@ -89,7 +97,10 @@ export default function RestaurantEdit() {
     e.preventDefault()
     setSaving(true)
     try {
-      await api.patch(`/owner/restaurants/${id}`, form)
+      await api.patch(`/owner/restaurants/${id}`, {
+        ...form,
+        ...(cuisineDirty ? { cuisineIds: secondaryCuisineIds } : {}),
+      })
       
       // If owner used a custom cuisine, flag it for admin review
       if (showCuisineOther && form.cuisineSpecific) {
@@ -207,6 +218,51 @@ export default function RestaurantEdit() {
                 </div>
               )}
             </div>
+          </div>
+
+          <div style={{ marginBottom: '10px' }}>
+            <label style={{ display: 'block', fontSize: '11px', fontWeight: 500, color: '#666', marginBottom: '6px' }}>
+              Additional cuisines
+              <span style={{ fontWeight: 400, color: '#aaa', marginLeft: '6px' }}>e.g. an Italian restaurant that also serves pizza</span>
+            </label>
+            {cuisineGroups.map(group => {
+              const groupCuisines = group.cuisines.filter(c => c.name !== form.cuisineSpecific)
+              if (!groupCuisines.length) return null
+              return (
+                <div key={group.broad} style={{ marginBottom: '8px' }}>
+                  <div style={{ fontSize: '10px', fontWeight: 600, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '4px' }}>{group.broad}</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                    {groupCuisines.map(c => {
+                      const sel = secondaryCuisineIds.includes(c.id)
+                      return (
+                        <button key={c.id} type="button"
+                          onClick={() => {
+                            setCuisineDirty(true)
+                            setSecondaryCuisineIds(prev =>
+                              prev.includes(c.id) ? prev.filter(x => x !== c.id) : [...prev, c.id]
+                            )
+                          }}
+                          style={{
+                            padding: '3px 10px', borderRadius: '999px', fontSize: '12px', cursor: 'pointer',
+                            border: `1px solid ${sel ? '#D85A30' : '#ddd'}`,
+                            background: sel ? '#FAECE7' : '#f9f9f9',
+                            color: sel ? '#993C1D' : '#666',
+                            fontWeight: sel ? 600 : 400,
+                          }}>
+                          {c.name}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })}
+            {secondaryCuisineIds.length > 0 && (
+              <button type="button" onClick={() => { setCuisineDirty(true); setSecondaryCuisineIds([]) }}
+                style={{ fontSize: '11px', color: '#D85A30', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: '4px' }}>
+                Clear all
+              </button>
+            )}
           </div>
 
           <div style={{ marginBottom: '10px' }}>
