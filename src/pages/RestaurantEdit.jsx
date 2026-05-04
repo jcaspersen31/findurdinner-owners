@@ -51,6 +51,9 @@ export default function RestaurantEdit() {
           glutenFreeFriendly: r.glutenFreeFriendly || false,
           halalFriendly: r.halalFriendly || false,
           kosherFriendly: r.kosherFriendly || false,
+          servesBeer: r.servesBeer || false,
+          servesWine: r.servesWine || false,
+          servesCocktails: r.servesCocktails || false,
         })
           try {
             const cuisineRes = await fetch('https://api.findurdinner.com/cuisines')
@@ -233,6 +236,23 @@ export default function RestaurantEdit() {
                   {label}
                 </label>
               ))}
+            </div>
+
+            <div style={{ marginTop: '14px' }}>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 500, color: '#666', marginBottom: '6px' }}>Drinks served</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                {[
+                  { field: 'servesBeer', label: '🍺 Beer' },
+                  { field: 'servesWine', label: '🍷 Wine' },
+                  { field: 'servesCocktails', label: '🍸 Cocktails' },
+                ].map(({ field, label }) => (
+                  <label key={field} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={form[field] || false}
+                      onChange={e => update(field, e.target.checked)} />
+                    {label}
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
         </div>

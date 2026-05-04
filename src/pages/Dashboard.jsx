@@ -6,6 +6,7 @@ import { getOwner } from '../auth.js'
 export default function Dashboard() {
   const [restaurants, setRestaurants] = useState([])
   const [loading, setLoading] = useState(true)
+  const [analytics, setAnalytics] = useState({}) // restaurantId -> stats
   const owner = getOwner()
   const navigate = useNavigate()
 
@@ -27,6 +28,15 @@ export default function Dashboard() {
     try {
       const res = await api.get('/owner/restaurants')
       setRestaurants(res.data)
+      // Load analytics for each restaurant
+      const analyticsMap = {}
+      await Promise.all(res.data.map(async r => {
+        try {
+          const aRes = await api.get(`/analytics/owner/${r.id}`, { params: { days: 30 } })
+          analyticsMap[r.id] = aRes.data
+        } catch (e) { analyticsMap[r.id] = null }
+      }))
+      setAnalytics(analyticsMap)
     } catch (err) {
       console.error(err)
     }
@@ -99,6 +109,36 @@ export default function Dashboard() {
                 {r.delivery && <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '999px', background: '#FAEEDA', color: '#633806' }}>Delivery</span>}
                 <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '999px', background: '#F1EFE8', color: '#5F5E5A' }}>{r.priceRange}</span>
               </div>
+
+              {/* Analytics mini panel */}
+              {analytics[r.id] && (
+                <div style={{ background: '#f9f8f6', borderRadius: '8px', padding: '10px 14px', marginBottom: '12px' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 500, color: '#888', marginBottom: '8px' }}>Last 30 days</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', textAlign: 'center' }}>
+                    {[
+                      { label: 'Times shown', value: analytics[r.id].shown },
+                      { label: 'Times kept', value: analytics[r.id].kept },
+                      { label: 'Times chosen', value: analytics[r.id].selected },
+                    ].map(({ label, value }) => (
+                      <div key={label}>
+                        <div style={{ fontSize: '18px', fontWeight: 600, color: '#333' }}>{value}</div>
+                        <div style={{ fontSize: '10px', color: '#aaa', marginTop: '2px' }}>{label}</div>
+                      </div>
+                    ))}
+                  </div>
+                  {analytics[r.id].shown > 0 && (
+                    <div style={{ fontSize: '11px', color: '#888', marginTop: '8px', textAlign: 'center' }}>
+                      Keep rate: <strong style={{ color: '#D85A30' }}>{analytics[r.id].keepRate}%</strong>
+                      {analytics[r.id].shown === 0 && ' — spin more to see your stats'}
+                    </div>
+                  )}
+                  {analytics[r.id].shown === 0 && (
+                    <div style={{ fontSize: '11px', color: '#aaa', textAlign: 'center' }}>
+                      No spin data yet — stats appear once users find your restaurant
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div style={{ display: 'flex', gap: '8px', borderTop: '0.5px solid #f0efe8', paddingTop: '12px', flexWrap: 'wrap' }}>
                 <button
