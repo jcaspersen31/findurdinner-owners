@@ -289,19 +289,41 @@ export default function RestaurantEdit() {
         </div>
 
         <div style={{ background: '#fff', border: '0.5px solid #e0dfd8', borderRadius: '12px', padding: '16px 20px', marginBottom: '16px' }}>
-          <div style={{ fontSize: '11px', fontWeight: 500, color: '#888', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '12px' }}>Hours</div>
-          {DAYS.map(day => (
-            <div key={day} style={{ display: 'grid', gridTemplateColumns: '48px 1fr', gap: '8px', alignItems: 'center', marginBottom: '6px' }}>
-              <span style={{ fontSize: '12px', fontWeight: 500, color: '#666' }}>{day}</span>
-              <input
-                type="text"
-                value={form.hours[day] || ''}
-                onChange={e => updateHours(day, e.target.value)}
-                placeholder="e.g. 11am–9pm or Closed"
-                style={{ padding: '5px 8px', borderRadius: '6px', border: '0.5px solid #ccc', fontSize: '12px' }}
-              />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+            <div style={{ fontSize: '11px', fontWeight: 500, color: '#888', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Hours</div>
+            {tierName === 'Free' && (
+              <span style={{ fontSize: '11px', color: '#D85A30' }}>Subscriber feature</span>
+            )}
+          </div>
+          {tierName === 'Free' ? (
+            <div>
+              <div style={{ fontSize: '13px', color: '#666', marginBottom: '10px' }}>
+                Update your hours to appear higher in spin results when you're open. Available with the <strong>Subscriber</strong> plan.
+              </div>
+              <button type="button" onClick={async () => {
+                try {
+                  const res = await api.post('/stripe/create-checkout', { tierName: 'Subscriber', restaurantId: id })
+                  window.location.href = res.data.url
+                } catch (err) { alert('Failed to start checkout') }
+              }}
+                style={{ padding: '7px 14px', background: '#D85A30', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
+                Upgrade to Subscriber — $9/mo
+              </button>
             </div>
-          ))}
+          ) : (
+            DAYS.map(day => (
+              <div key={day} style={{ display: 'grid', gridTemplateColumns: '48px 1fr', gap: '8px', alignItems: 'center', marginBottom: '6px' }}>
+                <span style={{ fontSize: '12px', fontWeight: 500, color: '#666' }}>{day}</span>
+                <input
+                  type="text"
+                  value={form.hours[day] || ''}
+                  onChange={e => updateHours(day, e.target.value)}
+                  placeholder="e.g. 11am–9pm or Closed"
+                  style={{ padding: '5px 8px', borderRadius: '6px', border: '0.5px solid #ccc', fontSize: '12px' }}
+                />
+              </div>
+            ))
+          )}
         </div>
 
         <button
@@ -319,7 +341,7 @@ export default function RestaurantEdit() {
             <div style={{ fontSize: '11px', fontWeight: 500, color: '#888', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Menu</div>
             {!hasTier && (
               <div style={{ fontSize: '12px', color: '#888', marginTop: '4px' }}>
-                Upload your menu with the <strong>Menu tier</strong> ($19/mo)
+                Upload your menu with the <strong>Subscriber tier</strong> ($9/mo)
               </div>
             )}
           </div>
@@ -327,12 +349,12 @@ export default function RestaurantEdit() {
             <button
               onClick={async () => {
                 try {
-                  const res = await api.post('/stripe/create-checkout', { tierName: 'Menu', restaurantId: id })
+                  const res = await api.post('/stripe/create-checkout', { tierName: 'Subscriber', restaurantId: id })
                   window.location.href = res.data.url
                 } catch (err) { alert('Failed to start checkout') }
               }}
               style={{ padding: '7px 14px', background: '#378ADD', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
-              Upgrade to Menu — $19/mo
+              Upgrade to Subscriber — $9/mo
             </button>
           )}
         </div>

@@ -62,8 +62,8 @@ export default function Dashboard() {
   }
 
   const tierColors = {
-    Featured: { bg: '#EEEDFE', color: '#3C3489' },
-    Menu: { bg: '#E6F1FB', color: '#0C447C' },
+    Premier: { bg: '#EEEDFE', color: '#3C3489' },
+    Subscriber: { bg: '#E6F1FB', color: '#0C447C' },
     Free: { bg: '#F1EFE8', color: '#5F5E5A' },
   }
 
@@ -155,16 +155,16 @@ export default function Dashboard() {
                 )}
                 {r.tier?.name === 'Free' && (
                   <button
-                    onClick={() => upgrade(r.id, 'Menu')}
+                    onClick={() => upgrade(r.id, 'Subscriber')}
                     style={{ padding: '6px 14px', background: '#E6F1FB', border: '0.5px solid #85B7EB', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', color: '#0C447C' }}>
-                    Upgrade to Menu — $19/mo
+                    Upgrade to Subscriber — $9/mo
                   </button>
                 )}
-                {(r.tier?.name === 'Free' || r.tier?.name === 'Menu') && (
+                {(r.tier?.name === 'Free' || r.tier?.name === 'Subscriber') && (
                   <button
-                    onClick={() => upgrade(r.id, 'Featured')}
+                    onClick={() => upgrade(r.id, 'Premier')}
                     style={{ padding: '6px 14px', background: '#EEEDFE', border: '0.5px solid #AFA9EC', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', color: '#3C3489' }}>
-                    Upgrade to Featured — $49/mo
+                    Upgrade to Premier — $29/mo
                   </button>
                 )}
               </div>
